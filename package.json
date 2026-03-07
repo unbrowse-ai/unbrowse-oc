@@ -1,0 +1,39 @@
+{
+  "name": "unbrowse-browser",
+  "version": "0.1.0",
+  "description": "Native OpenClaw plugin that routes web tasks through the Unbrowse CLI.",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "test": "node --import tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@sinclair/typebox": "^0.34.41",
+    "unbrowse": "^1.1.0"
+  },
+  "peerDependencies": {
+    "openclaw": "^2026.2.13"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.1",
+    "openclaw": "^2026.2.13",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  },
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "files": [
+    "index.ts",
+    "openclaw.plugin.json",
+    "README.md",
+    "CHANGELOG.md",
+    "prompts",
+    "examples",
+    "test",
+    "tsconfig.json"
+  ]
+}

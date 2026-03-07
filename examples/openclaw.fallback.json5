@@ -1,0 +1,18 @@
+{
+  plugins: {
+    load: { paths: ["./submodules/openclaw-unbrowse-plugin"] },
+    entries: {
+      "unbrowse-browser": {
+        enabled: true,
+        config: {
+          routingMode: "fallback",
+          preferInBootstrap: true,
+          timeoutMs: 120000
+        }
+      }
+    }
+  },
+  tools: {
+    allow: ["group:plugins", "unbrowse-browser", "unbrowse"]
+  }
+}
