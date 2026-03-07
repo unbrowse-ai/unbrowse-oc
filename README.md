@@ -16,7 +16,7 @@ Use it when you want agents to hit APIs and structured data paths before reachin
 Intended npm package:
 
 ```bash
-@lekt9/unbrowse-openclaw
+@getfoundry/unbrowse-openclaw
 ```
 
 Until that scope is published, install from a local checkout:

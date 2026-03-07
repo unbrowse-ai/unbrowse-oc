@@ -1,6 +1,6 @@
 {
-  "name": "@lekt9/unbrowse-openclaw",
-  "version": "0.1.0",
+  "name": "@getfoundry/unbrowse-openclaw",
+  "version": "0.7.12",
   "description": "OpenClaw plugin that makes Unbrowse the preferred tool for website tasks.",
   "type": "module",
   "main": "index.ts",

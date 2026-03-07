@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0
+## 0.7.12
 
 - initial OpenClaw plugin scaffold
 - Unbrowse-backed agent tool
