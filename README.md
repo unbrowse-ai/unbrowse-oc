@@ -1,31 +1,15 @@
 # unbrowse-openclaw
 
-OpenClaw plugin that makes Unbrowse the preferred tool for website tasks.
+Use Unbrowse inside OpenClaw.
 
-It adds:
+This plugin adds a native `unbrowse` tool, teaches agents to use it first for website tasks, and gives you a strict mode that can keep agents off the built-in `browser` tool.
 
-- agent tool: `unbrowse`
-- bootstrap guidance that tells agents to use Unbrowse first
-- config presets for `fallback` and `strict` routing
-- small CLI helpers for debugging
-
-Use it when you want agents to hit APIs and structured data paths before reaching for pixel browser automation.
+Use it when you want API-first web work: structured extraction, reverse-engineered site actions, less brittle browser automation.
 
 ## Install
 
-Intended npm package:
-
 ```bash
-@getfoundry/unbrowse-openclaw
-```
-
-Until that scope is published, install from a local checkout:
-
-```bash
-git clone https://github.com/lekt9/unbrowse-openclaw.git
-cd unbrowse-openclaw
-npm install
-openclaw plugins install .
+openclaw plugins install unbrowse-openclaw
 openclaw gateway restart
 ```
 
@@ -36,7 +20,7 @@ openclaw plugins info unbrowse-browser
 openclaw unbrowse-plugin health
 ```
 
-If you use plugin allowlists, trust it explicitly:
+If you use plugin allowlists, trust it:
 
 ```json5
 {
@@ -48,11 +32,7 @@ If you use plugin allowlists, trust it explicitly:
 
 ## What agents get
 
-Tool name:
-
-- `unbrowse`
-
-Typical call:
+Tool:
 
 ```json
 {
@@ -62,43 +42,29 @@ Typical call:
 }
 ```
 
-Supported actions:
+Actions: `resolve`, `search`, `execute`, `login`, `skills`, `skill`, `health`
 
-- `resolve`
-- `search`
-- `execute`
-- `login`
-- `skills`
-- `skill`
-- `health`
-
-## Make Unbrowse the default web path
+## Default web path
 
 OpenClaw does not expose a true browser plugin slot, so this plugin does not replace the built-in `browser` tool by name.
 
-What it does instead:
-
-- adds the `unbrowse` tool
-- injects prompt guidance so agents prefer it
-- lets you deny core `browser` in tool policy when you want strict routing
-
 ### Fallback mode
 
-Prefer Unbrowse first, but still allow core `browser` when the task really needs UI automation.
+Prefer Unbrowse first. Let `browser` handle real UI-only tasks.
 
 - [examples/openclaw.fallback.json5](./examples/openclaw.fallback.json5)
 
 ### Strict mode
 
-Force normal web tasks onto Unbrowse by denying core `browser`.
+Route normal web tasks through Unbrowse by denying core `browser`.
 
 - [examples/openclaw.strict.json5](./examples/openclaw.strict.json5)
 
-Strict mode is the closest thing to “make Unbrowse the default browser” in current OpenClaw.
+Strict mode is the closest thing to making Unbrowse the default browser path in current OpenClaw.
 
 ## Tool policy
 
-If you use tool allowlists, include one of:
+If you use tool allowlists, allow one of:
 
 - plugin id: `unbrowse-browser`
 - tool name: `unbrowse`
@@ -114,7 +80,7 @@ Example:
 }
 ```
 
-## Local dev
+## Local dev install
 
 Load directly from source with `plugins.load.paths`:
 
@@ -147,7 +113,7 @@ openclaw unbrowse-plugin print-config strict
 openclaw unbrowse-plugin print-config fallback
 ```
 
-## Development
+## Dev
 
 ```bash
 npm test

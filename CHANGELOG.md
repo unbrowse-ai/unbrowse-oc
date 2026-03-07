@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.13
+
+- npm package renamed to `unbrowse-openclaw`
+- README simplified around what the plugin does and the real install path
+
 ## 0.7.12
 
 - initial OpenClaw plugin scaffold
@@ -9,4 +14,4 @@
 - dedicated bootstrap prompt template for agent decisioning
 - plugin CLI helpers for health, bootstrap preview, and config printing
 - README install/config docs aligned with OpenClaw plugin and tool-policy docs
-- package renamed for npm publish as `@lekt9/unbrowse-openclaw`
+- package prepared for scoped npm publish
