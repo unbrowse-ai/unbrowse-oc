@@ -8,3 +8,4 @@
 - strict/fallback routing presets plus generated OpenClaw config snippets
 - dedicated bootstrap prompt template for agent decisioning
 - plugin CLI helpers for health, bootstrap preview, and config printing
+- README install/config docs aligned with OpenClaw plugin and tool-policy docs
