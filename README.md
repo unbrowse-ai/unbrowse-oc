@@ -13,10 +13,19 @@ Use it when you want agents to hit APIs and structured data paths before reachin
 
 ## Install
 
-Install from npm:
+Intended npm package:
 
 ```bash
-openclaw plugins install @lekt9/unbrowse-openclaw
+@lekt9/unbrowse-openclaw
+```
+
+Until that scope is published, install from a local checkout:
+
+```bash
+git clone https://github.com/lekt9/unbrowse-openclaw.git
+cd unbrowse-openclaw
+npm install
+openclaw plugins install .
 openclaw gateway restart
 ```
 
@@ -107,17 +116,7 @@ Example:
 
 ## Local dev
 
-Install from a checked-out repo instead of npm:
-
-```bash
-git clone https://github.com/lekt9/unbrowse-openclaw.git
-cd unbrowse-openclaw
-npm install
-openclaw plugins install .
-openclaw gateway restart
-```
-
-Or load directly from source with `plugins.load.paths`:
+Load directly from source with `plugins.load.paths`:
 
 ```json5
 {
