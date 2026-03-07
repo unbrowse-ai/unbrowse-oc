@@ -9,3 +9,4 @@
 - dedicated bootstrap prompt template for agent decisioning
 - plugin CLI helpers for health, bootstrap preview, and config printing
 - README install/config docs aligned with OpenClaw plugin and tool-policy docs
+- package renamed for npm publish as `@lekt9/unbrowse-openclaw`
