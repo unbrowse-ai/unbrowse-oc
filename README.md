@@ -16,7 +16,7 @@ openclaw gateway restart
 Verify:
 
 ```bash
-openclaw plugins info unbrowse-browser
+openclaw plugins info unbrowse-openclaw
 openclaw unbrowse-plugin health
 ```
 
@@ -25,7 +25,7 @@ If you use plugin allowlists, trust it:
 ```json5
 {
   plugins: {
-    allow: ["unbrowse-browser"]
+    allow: ["unbrowse-openclaw"]
   }
 }
 ```
@@ -44,9 +44,19 @@ Tool:
 
 Actions: `resolve`, `search`, `execute`, `login`, `skills`, `skill`, `health`
 
+Integration:
+
+- bootstrap guidance plus a `before_agent_start` system-prompt hint each run
+- a shipped `unbrowse-browser` skill so the replacement policy shows up in OpenClaw's skill surface
+- strict-mode blocking of the built-in `browser` tool via `before_tool_call`
+
 ## Default web path
 
-OpenClaw does not expose a true browser plugin slot, so this plugin does not replace the built-in `browser` tool by name.
+This plugin makes `unbrowse` the default web path in practice by:
+
+- teaching the agent to prefer `unbrowse`
+- shipping a skill that reinforces the policy
+- optionally blocking `browser` in strict mode
 
 ### Fallback mode
 
@@ -56,17 +66,18 @@ Prefer Unbrowse first. Let `browser` handle real UI-only tasks.
 
 ### Strict mode
 
-Route normal web tasks through Unbrowse by denying core `browser`.
+Route normal web tasks through Unbrowse by blocking the built-in `browser` tool.
 
 - [examples/openclaw.strict.json5](./examples/openclaw.strict.json5)
 
-Strict mode is the closest thing to making Unbrowse the default browser path in current OpenClaw.
+Strict mode is the closest thing to making Unbrowse the default browser path without patching OpenClaw core.
 
 ## Tool policy
 
 If you use tool allowlists, allow one of:
 
-- plugin id: `unbrowse-browser`
+- plugin id: `unbrowse-openclaw`
+- tool name: `browser`
 - tool name: `unbrowse`
 - `group:plugins`
 
@@ -75,7 +86,7 @@ Example:
 ```json5
 {
   tools: {
-    allow: ["group:plugins", "unbrowse-browser", "unbrowse"]
+    allow: ["browser", "unbrowse"]
   }
 }
 ```
@@ -87,10 +98,10 @@ Load directly from source with `plugins.load.paths`:
 ```json5
 {
   plugins: {
-    allow: ["unbrowse-browser"],
+    allow: ["unbrowse-openclaw"],
     load: { paths: ["/absolute/path/to/unbrowse-openclaw"] },
     entries: {
-      "unbrowse-browser": {
+      "unbrowse-openclaw": {
         enabled: true,
         config: {
           routingMode: "fallback",

@@ -1,7 +1,8 @@
 {
-  "id": "unbrowse-browser",
+  "id": "unbrowse-openclaw",
   "name": "Unbrowse Browser",
   "description": "Prefer Unbrowse CLI over pixel browser automation for website tasks",
+  "skills": ["./skills"],
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -13,7 +14,7 @@
       "routingMode": {
         "type": "string",
         "enum": ["strict", "fallback"],
-        "default": "fallback",
+        "default": "strict",
         "description": "strict = steer agents away from core browser, fallback = prefer Unbrowse first but permit browser fallback"
       },
       "binPath": {
@@ -30,12 +31,12 @@
       "preferInBootstrap": {
         "type": "boolean",
         "default": true,
-        "description": "Inject bootstrap guidance telling agents to prefer the Unbrowse tool for web work"
+        "description": "Inject bootstrap and per-run guidance telling agents to prefer the Unbrowse browser path for web work"
       },
       "allowBrowserFallback": {
         "type": "boolean",
         "default": true,
-        "description": "Tell agents they may fall back to OpenClaw's built-in browser when Unbrowse is not a fit"
+        "description": "Allow fallback to OpenClaw's built-in `browser` tool when Unbrowse is not a fit"
       },
       "healthcheckOnStart": {
         "type": "boolean",

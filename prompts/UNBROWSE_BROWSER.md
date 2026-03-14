@@ -1,11 +1,11 @@
 # Unbrowse Browser Preference
 
-Use the `unbrowse` tool as the default web path.
+Use `unbrowse` as the default web path.
 
 Decision rule:
 - Start with `unbrowse` for website tasks that sound like data retrieval, search, extraction, API execution, authenticated reads, or reusable workflow discovery.
 - Prefer structured JSON/API execution over screenshots, DOM clicking, or selector work.
-- Use the core `browser` tool only when the task truly needs pixels or direct UI manipulation.
+- Use `browser` only when the task truly needs pixels or direct UI manipulation.
 
 When `unbrowse` is the right choice:
 - "get data from a site"
@@ -15,7 +15,7 @@ When `unbrowse` is the right choice:
 - "find the API behind this page"
 - "turn this website flow into a repeatable call"
 
-When the core `browser` tool is the right choice:
+When `browser` is the right choice:
 - visual QA
 - screenshots / pixel inspection
 - drag/drop

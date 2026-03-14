@@ -6,10 +6,11 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 const requireFromHere = createRequire(import.meta.url);
+const PLUGIN_ID = "unbrowse-openclaw";
 const TOOL_NAME = "unbrowse";
 const BOOTSTRAP_GUIDE_PATH = "UNBROWSE_BROWSER.md";
 const DEFAULT_TIMEOUT_MS = 120_000;
-const DEFAULT_ROUTING_MODE = "fallback";
+const DEFAULT_ROUTING_MODE = "strict";
 
 type PluginConfig = {
   baseUrl?: string;
@@ -43,6 +44,12 @@ type CommandResult = {
   stderr: string;
   exitCode: number | null;
   signal: NodeJS.Signals | null;
+};
+
+type CompatibleRegisterHook = OpenClawPluginApi["registerHook"];
+type CompatibleHookOptions = Parameters<CompatibleRegisterHook>[2];
+type BeforeToolCallEvent = {
+  toolName?: string;
 };
 
 function getPluginVersion(): string {
@@ -158,6 +165,19 @@ function parseMaybeJson(stdout: string): unknown {
   }
 }
 
+function registerCompatibleHook(
+  api: OpenClawPluginApi,
+  event: string,
+  handler: unknown,
+  options?: CompatibleHookOptions,
+): void {
+  api.registerHook(
+    event,
+    handler as Parameters<CompatibleRegisterHook>[1],
+    options,
+  );
+}
+
 async function runCommand(binPath: string, args: string[], config: Required<PluginConfig>): Promise<CommandResult> {
   return await new Promise<CommandResult>((resolve) => {
     const child = spawn(process.execPath, [binPath, ...args], {
@@ -203,25 +223,46 @@ async function runCommand(binPath: string, args: string[], config: Required<Plug
 function buildBootstrapGuide(config: Required<PluginConfig>): string {
   const template = readFileSync(new URL("./prompts/UNBROWSE_BROWSER.md", import.meta.url), "utf8");
   const fallbackLine = config.allowBrowserFallback
-    ? "- Fall back to the core `browser` tool only for login-only flows, visual verification, canvas/file-upload work, or when Unbrowse cannot discover a usable API path."
-    : "- Do not use the core `browser` tool for normal website work. Stay on `unbrowse` and report when the task is unsupported.";
+    ? "- Fall back to `browser` only for login-only flows, visual verification, canvas/file-upload work, or when Unbrowse cannot discover a usable API path."
+    : "- Do not use `browser` for normal website work. Stay on `unbrowse` and report when the task is unsupported.";
   const policyRule = config.routingMode === "strict"
-    ? "- This plugin is in strict mode. Treat Unbrowse as mandatory for normal web tasks."
-    : "- This plugin is in fallback mode. Prefer Unbrowse first, then fall back only when the task truly needs browser automation.";
+    ? "- This plugin is in strict mode. Treat `unbrowse` as mandatory for normal web tasks."
+    : "- This plugin is in fallback mode. Prefer `unbrowse` first, then fall back only when the task truly needs browser automation.";
 
   return template
     .replace("{{FALLBACK_RULE}}", fallbackLine)
     .replace("{{BROWSER_POLICY_RULE}}", policyRule);
 }
 
+function buildBeforeAgentStartGuidance(config: Required<PluginConfig>): string {
+  const lines = [
+    "Web-routing policy:",
+    "- The `unbrowse` tool is the preferred website path in this workspace.",
+    "- Use `unbrowse` first for website retrieval, search, extraction, authenticated reads, and API-backed workflows.",
+    "- Use `browser` only for visual QA, selector/pixel work, drag-drop, canvas apps, uploads/downloads, or when Unbrowse has no usable path.",
+  ];
+
+  if (config.routingMode === "strict") {
+    lines.push("- Strict mode is on. Avoid `browser` for normal website work.");
+  }
+
+  return lines.join("\n");
+}
+
+function buildBrowserFallbackBlockReason(): string {
+  return [
+    "`browser` is disabled by unbrowse-openclaw strict mode.",
+    "Use `unbrowse` for normal website work, or switch the plugin to fallback mode if you truly need legacy UI automation.",
+  ].join(" ");
+}
+
 function buildSuggestedConfig(mode: "strict" | "fallback"): string {
-  const strict = mode === "strict";
   return [
     "{",
     "  plugins: {",
     '    load: { paths: ["./submodules/openclaw-unbrowse-plugin"] },',
     "    entries: {",
-    '      "unbrowse-browser": {',
+    `      "${PLUGIN_ID}": {`,
     "        enabled: true,",
     "        config: {",
     `          routingMode: "${mode}",`,
@@ -230,10 +271,6 @@ function buildSuggestedConfig(mode: "strict" | "fallback"): string {
     "        }",
     "      }",
     "    }",
-    "  },",
-    "  tools: {",
-    '    allow: ["group:plugins", "unbrowse-browser", "unbrowse"],',
-    ...(strict ? ['    deny: ["browser"]'] : []),
     "  }",
     "}",
   ].join("\n");
@@ -241,13 +278,15 @@ function buildSuggestedConfig(mode: "strict" | "fallback"): string {
 
 export const __test = {
   buildArgs,
+  buildBeforeAgentStartGuidance,
+  buildBrowserFallbackBlockReason,
   buildBootstrapGuide,
   buildSuggestedConfig,
   normalizeConfig,
 };
 
 const plugin = {
-  id: "unbrowse-browser",
+  id: PLUGIN_ID,
   name: "Unbrowse Browser",
   description: "Routes website tasks through the local Unbrowse CLI before pixel browser automation.",
   register(api: OpenClawPluginApi) {
@@ -255,7 +294,7 @@ const plugin = {
     const binPath = resolveUnbrowseBin(config);
     const version = getPluginVersion();
 
-    api.logger.info(`unbrowse-browser@${version}: registered (bin: ${binPath})`);
+    api.logger.info(`${PLUGIN_ID}@${version}: registered (bin: ${binPath})`);
 
     api.registerTool({
       name: TOOL_NAME,
@@ -337,6 +376,13 @@ const plugin = {
     });
 
     if (config.preferInBootstrap) {
+      registerCompatibleHook(api, "before_agent_start", async () => ({
+        systemPrompt: buildBeforeAgentStartGuidance(config),
+      }), {
+        name: `${PLUGIN_ID}.before-agent-start`,
+        description: "Reinforce Unbrowse as the default browser path before each run",
+      });
+
       api.registerHook("agent:bootstrap", async (event) => {
         const context = (event.context ?? {}) as { bootstrapFiles?: Array<Record<string, unknown>>; sessionKey?: string };
         const bootstrapFiles = context.bootstrapFiles;
@@ -351,8 +397,21 @@ const plugin = {
           virtual: true,
         });
       }, {
-        name: "unbrowse-browser.agent-bootstrap",
+        name: `${PLUGIN_ID}.agent-bootstrap`,
         description: "Inject Unbrowse-first browsing guidance into bootstrap context",
+      });
+    }
+
+    if (!config.allowBrowserFallback) {
+      registerCompatibleHook(api, "before_tool_call", async (event: BeforeToolCallEvent) => {
+        if (event.toolName !== "browser") return;
+        return {
+          block: true,
+          blockReason: buildBrowserFallbackBlockReason(),
+        };
+      }, {
+        name: `${PLUGIN_ID}.before-tool-call`,
+        description: "Block legacy browser fallback while Unbrowse strict mode is active",
       });
     }
 
@@ -378,18 +437,18 @@ const plugin = {
     }, { commands: ["unbrowse-plugin"] });
 
     api.registerService({
-      id: "unbrowse-browser",
+      id: PLUGIN_ID,
       start: async () => {
         if (!config.healthcheckOnStart) return;
         try {
           const result = await runCommand(binPath, ["health"], config);
           if (result.ok) {
-            api.logger.info("unbrowse-browser: startup healthcheck passed");
+            api.logger.info(`${PLUGIN_ID}: startup healthcheck passed`);
           } else {
-            api.logger.warn(`unbrowse-browser: startup healthcheck failed: ${result.stderr || result.stdout}`);
+            api.logger.warn(`${PLUGIN_ID}: startup healthcheck failed: ${result.stderr || result.stdout}`);
           }
         } catch (error) {
-          api.logger.warn(`unbrowse-browser: startup healthcheck threw: ${String(error)}`);
+          api.logger.warn(`${PLUGIN_ID}: startup healthcheck threw: ${String(error)}`);
         }
       },
     });

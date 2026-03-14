@@ -2,7 +2,7 @@
   plugins: {
     load: { paths: ["./submodules/openclaw-unbrowse-plugin"] },
     entries: {
-      "unbrowse-browser": {
+      "unbrowse-openclaw": {
         enabled: true,
         config: {
           routingMode: "strict",
@@ -11,9 +11,5 @@
         }
       }
     }
-  },
-  tools: {
-    allow: ["group:plugins", "unbrowse-browser", "unbrowse"],
-    deny: ["browser"]
   }
 }
