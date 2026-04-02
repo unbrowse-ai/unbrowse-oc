@@ -9,11 +9,46 @@ Use it when you want API-first web work: structured extraction, reverse-engineer
 ## Install
 
 ```bash
-openclaw plugins install unbrowse-openclaw
-openclaw gateway restart
+npx unbrowse-openclaw install --restart
 ```
 
-If that registry install path triggers scary scanner warnings, use the trusted local-load path instead. Review the checked-out plugin, then point OpenClaw at it directly:
+Global package path:
+
+```bash
+npm install -g unbrowse-openclaw
+unbrowse-openclaw install --restart
+```
+
+From this monorepo, the dev wrapper is:
+
+```bash
+bun run openclaw:install -- --restart
+```
+
+What the installer does:
+
+- links the local plugin into OpenClaw
+- merges `plugins.allow` with `unbrowse-openclaw`
+- enables the plugin entry
+- writes sticky plugin config with `routingMode`, `preferInBootstrap`, and timeout
+- unsets global `tools.profile` unless you pass `--keep-tools-profile`
+- optionally restarts the gateway
+
+Why the script exists: `openclaw plugins install` alone is not enough. It does not set `plugins.allow`, does not switch the plugin into strict mode, and does not remove the `tools.profile` footgun that can hide plugin tools completely.
+
+Installer flags:
+
+```bash
+npx unbrowse-openclaw install --mode strict --restart
+npx unbrowse-openclaw install --mode fallback
+npx unbrowse-openclaw install --dev --restart
+npx unbrowse-openclaw install --profile work --restart
+npx unbrowse-openclaw install --keep-tools-profile
+```
+
+The published package depends on `unbrowse`, so the local Unbrowse CLI/runtime is pulled in automatically from npm.
+
+If you still want the manual path, review the checked-out plugin, then point OpenClaw at it directly:
 
 ```json5
 {
@@ -47,18 +82,17 @@ Verify:
 openclaw plugins info unbrowse-openclaw
 openclaw unbrowse-plugin health
 openclaw unbrowse-plugin print-trusted-install
+```
 
 Verify:
-
-```bash
-openclaw plugins info unbrowse-openclaw
-openclaw unbrowse-plugin health
-openclaw unbrowse-plugin print-trusted-install
-```
+- `unbrowse` tool shows up in the agent tool list
+- `openclaw unbrowse-plugin print-bootstrap` prints Unbrowse-first guidance
 
 ## Required Configuration
 
-After installing, several config steps must be completed before an agent can see and call the `unbrowse` tool. Without these, the plugin may register but the tool will be invisible or the gateway will never connect.
+If you use the installer script above, it handles the main config writes automatically. This section is for manual installs and debugging.
+
+After manual install, several config steps must be completed before an agent can see and call the `unbrowse` tool. Without these, the plugin may register but the tool will be invisible or the gateway will never connect.
 
 ### 1. Allow the plugin (REQUIRED)
 
@@ -168,7 +202,7 @@ Example:
 ```json5
 {
   tools: {
-    allow: ["browser", "unbrowse"]
+    allow: ["unbrowse", "unbrowse-openclaw"]
   }
 }
 ```
@@ -200,6 +234,7 @@ Load directly from source with `plugins.load.paths`:
 ## CLI helpers
 
 ```bash
+npx unbrowse-openclaw install --restart
 openclaw unbrowse-plugin health
 openclaw unbrowse-plugin print-bootstrap
 openclaw unbrowse-plugin print-config strict
